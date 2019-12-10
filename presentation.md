@@ -1,0 +1,65 @@
+Data Science Capstone - Text Prediction Application
+======================================================
+author: Ang Dingyao
+date:   Dec 2019
+
+A simple text prediction application is built for peer assessment.
+
+
+Application Intention
+======================================================
+
+The intention of this application is to let users type some words
+and predict what the next word would be.
+
+The application will also display other potential suggestions.
+
+This would be done through a text box input with output of a
+single suggestion, a barchart and a wordcloud.
+
+The application takes its prediction (training) from 3 datasets
+- News
+- Blogs
+- Twitter
+
+
+Preprocessing The Data Sets
+======================================================
+
+The 3 data sets are huge and fread/fwrite from the data.table
+package was used to speed up the process.
+
+To reduce the sizes and handling time, 1/10 of all
+available lines was randomly sampled and ngrams with less than 5 occurrences were removed.
+
+The lines were cleaned by removing all non-alphabetical characters (except for ' and -) and forcing all words to lower case.
+
+Stemming common words was considered in a trial but subsequently unused as it potentially gave
+nonsensical replies in prediction.
+
+A list of 2-grams to 5-grams was then generated from the cleaned lines, sped up by using
+quanteda and parallel packages.
+
+
+Previewing The Application
+======================================================
+
+![meow](meow.png)
+The application launches with a default prediction for ease of understanding.
+The user needs to erase the text and type his/her own words and click on Submit.
+Prediction starts by searching for the submitted words in the 5-gram list.
+If none is found, it moves on to the 4-gram list and next lower ngram if required.
+
+
+Last But Not Least
+======================================================
+
+Please access this application at https://ianang.shinyapps.io/capstone.
+
+Please access the underlying code at https://github.com/ianang/capstone.
+
+This deck of slides can be found at http://rpubs.com/ianang/capstone.
+
+*THANK YOU FOR REVIEWING ME !*
+
+**CONGRATULATIONS AHEAD TO YOU FOR GRADUATING !**
