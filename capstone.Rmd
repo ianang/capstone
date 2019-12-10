@@ -1,0 +1,165 @@
+---
+title: "Capstone"
+output: 
+  html_document:
+    keep_md: true
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, message=FALSE, warning=FALSE}
+library(stringr)
+library(parallel)
+library(quanteda)
+library(data.table)
+quanteda_options(threads=detectCores()-1)
+
+setwd("C:/Users/angdy/Desktop/Coursera-SwiftKey/en_US")
+file.list <- c("en_US.blogs.txt",
+               "en_US.news.corrected.txt",
+               "en_US.twitter.txt")
+
+en_US <- list(1:3); no.lines <- list(1:3)
+for (i in 1:3) {
+    con <- file(file.list[i], "r")
+    en_US[[i]] <- readLines(con, skipNul=TRUE)
+    close(con)
+    no.lines[i] <- length(en_US[[i]])
+}
+
+# set.seed(123)
+tokening <- c(sample(en_US[[1]], no.lines[[1]]/10),
+              sample(en_US[[2]], no.lines[[2]]/10),
+              sample(en_US[[3]], no.lines[[3]]/10)); rm(en_US)
+# tokening <- c(en_US[[1]], en_US[[2]], en_US[[3]]); rm(en_US)
+tokening <- str_replace_all(tokening, "[^a-zA-Z '-]", "")
+tokening <- tokens(tokening, remove_punct=T,
+                   remove_symbols=T, remove_separators=T)
+
+# tokening <- tokens_remove(tokening, pattern=stopwords(source="smart"))
+# trial <- tokens("When you breathe, I want to be the air for you. I'll be there for you, # I'd live and I'd", remove_punct=T, remove_symbols=T, remove_separators=T)
+# tokens_remove(trial, pattern=stopwords(source="smart"))
+# pattern <- "(breathe).*(air).*(live)"
+# results <- grep(pattern, tokening)
+
+# hunting <- function(tokening) {
+#     results <- trial[[1]] %in% tokening
+#     sum(results) == length(results)
+# }; sapply(tokening, hunting)
+
+# sums1 <- dfm(tokening, ngrams=1, tolower=TRUE)
+# sums1 <- dfm_trim(sums1, 3)
+# sums1 <- colSums(sums1)
+# sums1 <- data.table(word1=names(sums1), count=sums1)
+# fwrite(sums1, "sums1.csv")
+# rm(sums1)
+
+sums2 <- dfm(tokening, ngrams=2, tolower=TRUE)
+sums2 <- dfm_trim(sums2, 5)
+sums2 <- colSums(sums2)
+sums2 <- data.table(word1=sapply(strsplit(names(sums2),"_",fixed=TRUE),'[[',1),
+                    word2=sapply(strsplit(names(sums2),"_",fixed=TRUE),'[[',2),
+                    count=sums2)
+fwrite(sums2, "sums2.csv")
+rm(sums2)
+
+sums3 <- dfm(tokening, ngrams=3, tolower=TRUE)
+sums3 <- dfm_trim(sums3, 5)
+sums3 <- colSums(sums3)
+sums3 <- data.table(word1=sapply(strsplit(names(sums3),"_",fixed=TRUE),'[[',1),
+                    word2=sapply(strsplit(names(sums3),"_",fixed=TRUE),'[[',2),
+                    word3=sapply(strsplit(names(sums3),"_",fixed=TRUE),'[[',3),
+                    count=sums3)
+fwrite(sums3, "sums3.csv")
+rm(sums3)
+
+sums4 <- dfm(tokening, ngrams=4, tolower=TRUE)
+sums4 <- dfm_trim(sums4, 5)
+sums4 <- colSums(sums4)
+sums4 <- data.table(word1=sapply(strsplit(names(sums4),"_",fixed=TRUE),'[[',1),
+                    word2=sapply(strsplit(names(sums4),"_",fixed=TRUE),'[[',2),
+                    word3=sapply(strsplit(names(sums4),"_",fixed=TRUE),'[[',3),
+                    word4=sapply(strsplit(names(sums4),"_",fixed=TRUE),'[[',4),
+                    count=sums4)
+fwrite(sums4, "sums4.csv")
+rm(sums4)
+
+sums5 <- dfm(tokening, ngrams=5, tolower=TRUE); rm(tokening)
+sums5 <- dfm_trim(sums5, 5)
+sums5 <- colSums(sums5)
+sums5 <- data.table(word1=sapply(strsplit(names(sums5),"_",fixed=TRUE),'[[',1),
+                    word2=sapply(strsplit(names(sums5),"_",fixed=TRUE),'[[',2),
+                    word3=sapply(strsplit(names(sums5),"_",fixed=TRUE),'[[',3),
+                    word4=sapply(strsplit(names(sums5),"_",fixed=TRUE),'[[',4),
+                    word5=sapply(strsplit(names(sums5),"_",fixed=TRUE),'[[',5),
+                    count=sums5)
+fwrite(sums5, "sums5.csv")
+rm(sums5)
+```
+
+```{r}
+library(data.table)
+sums5 <- fread("sums5.csv"); sums4 <- fread("sums4.csv")
+sums3 <- fread("sums3.csv"); sums2 <- fread("sums2.csv")
+setkey(sums5, word1, word2, word3, word4, word5)
+setkey(sums4, word1, word2, word3, word4)
+setkey(sums3, word1, word2, word3)
+setkey(sums2, word1, word2)
+
+sums3[.("live","and")][order(-count)][1:5]
+# must remove "i'd" yet keep "and"
+
+sums5[.("telling","me","about","his")][order(-count)][1:5]
+sums4[.("me","about","his")][order(-count)][1:5]
+sums3[.("about","his")][order(-count)][1:5]
+  sums3[.("about","his","financial")][order(-count)]
+  sums3[.("about","his","marital")][order(-count)]
+  sums3[.("about","his","spiritual")][order(-count)]
+  sums3[.("about","his","horticultural")][order(-count)]
+sums2[.("his")][order(-count)][1:5]
+  sums2[.("his","financial")][order(-count)]
+  sums2[.("his","marital")][order(-count)]
+  sums2[.("his","spiritual")][order(-count)]
+  sums2[.("his","horticultural")][order(-count)]
+
+sums5[.("see","arctic","monkeys","this")][order(-count)][1:5]
+sums4[.("arctic","monkeys","this")][order(-count)][1:5]
+sums3[.("monkeys","this")][order(-count)][1:5]
+sums2[.("this")][order(-count)][1:5]
+  sums2[.("this","decade")][order(-count)]
+  sums2[.("this","month")][order(-count)]
+  sums2[.("this","weekend")][order(-count)]
+  sums2[.("this","morning")][order(-count)]
+
+sums3[.("help","reduce","happiness")][order(-count)]
+sums3[.("help","reduce","hunger")][order(-count)]
+sums3[.("help","reduce","stress")][order(-count)]
+sums3[.("help","reduce","sleepiness")][order(-count)]
+# must reduce "helps" to "help" and remove "your"
+
+sums4[.("to","take","a")][order(-count)][1:5]
+sums3[.("take","a")][order(-count)][1:5]
+sums2[.("take","picture")][order(-count)]
+sums2[.("take","pictures")][order(-count)]
+# must remove "a" using stopwords
+
+sums2[.("settle","accounts")][order(-count)]
+sums2[.("settle","cases")][order(-count)]
+sums2[.("settle","incidents")][order(-count)]
+sums2[.("settle","matters")][order(-count)]
+# must remove "the" and add "s" to all options
+
+sums3[.("in","each","arm")][order(-count)]
+sums3[.("in","each","finger")][order(-count)]
+sums3[.("in","each","toe")][order(-count)]
+sums3[.("in","each","hand")][order(-count)]
+
+sums5[.("the","bottom","to","the")][order(-count)][1:5]
+
+sums2[.("playing","weekly")][order(-count)]
+sums2[.("playing","inside")][order(-count)]
+sums2[.("playing","daily")][order(-count)]
+sums2[.("playing","outside")][order(-count)]
+
+sums3[.("adam","sandler")][order(-count)][1:5]
+```
